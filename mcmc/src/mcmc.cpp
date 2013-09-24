@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 	int flg = 0;
 	int accepted = 0;
 	int n = 0;
+	int kk;
 	int Nmax = 100000;
 	int burnin = 0;
 	double a_cand[order+1],b_cand[order+1];
@@ -104,16 +105,16 @@ int main(int argc, char *argv[])
 	//Parallel part
 	
 	double start = omp_get_wtime();
-	#pragma omp parallel private(tid,a_cand,b_cand,a_curr,b_curr,burnin,accepted,flg,chi_best,chi_curr,chi_cand,sigma,ratio,count,y_cand,n)
+	#pragma omp parallel private(tid,a_cand,b_cand,a_curr,b_curr,burnin,accepted,flg,chi_best,chi_curr,chi_cand,sigma,ratio,count,y_cand,n,kk)
 	{
 	tid = omp_get_thread_num();
 	while(n<=Nmax)
 	{	
 		
-		for(int ii = 0; ii < order+1; ii++)
+		for(kk = 0; kk < order+1; kk++)
 		{
-			a_cand[ii] = a_curr[ii] + sigma*distribution(generator);
-			b_cand[ii] = b_curr[ii] + sigma*distribution(generator);
+			a_cand[kk] = a_curr[kk] + sigma*distribution(generator);
+			b_cand[kk] = b_curr[kk] + sigma*distribution(generator);
 		}
 		a_cand[0] = 1.0;
 		filter_out(a_cand,b_cand,y_cand,u,num_samples,order);
@@ -122,19 +123,19 @@ int main(int argc, char *argv[])
 		if(udistribution(generator)<ratio)
 		{	
 			//std::cout<<"accepted"<<std::endl;
-			for(int ii=0;ii<order+1;ii++)
+			for(kk=0;kk<order+1;kk++)
 			{
-				a_curr[ii] = a_cand[ii];
-				b_curr[ii] = b_cand[ii];			
+				a_curr[kk] = a_cand[kk];
+				b_curr[kk] = b_cand[kk];			
 			}
 			chi_curr = chi_cand;
 			if(chi_cand<chi_best)
 			{
 				chi_best = chi_cand;
-				for(int ii=0;ii<order+1;ii++)
+				for(int kk=0;kk<order+1;kk++)
 				{
-					a_best[ii] = a_curr[ii];
-					b_best[ii] = a_curr[ii];
+					a_best[kk] = a_curr[kk];
+					b_best[kk] = a_curr[kk];
 				}
 			}
 			accepted++;
@@ -168,10 +169,10 @@ int main(int argc, char *argv[])
 		n++;
 		if(flg==1)
 		{
-			for(int ii=0;ii<order+1;ii++)
+			for(kk=0;kk<order+1;kk++)
 			{
-				a_save[n-(burnin+1)][tid][ii] = a_curr[ii];
-				b_save[n-(burnin+1)][tid][ii] = b_curr[ii];
+				a_save[n-(burnin+1)][tid][kk] = a_curr[kk];
+				b_save[n-(burnin+1)][tid][kk] = b_curr[kk];
 			}
 		}
 	}
@@ -182,10 +183,13 @@ int main(int argc, char *argv[])
 	b_dat.open("data/b.dat");
 	for(int ii=0;ii<Nmax-burnin;ii++)
 	{
-		for(int jj=0;jj<order+1;jj++)
+		for(int jj=0;jj<nthreads;jj++)
 		{
-			a_dat << a_save[ii][jj] << "\t";
-			b_dat << b_save[ii][jj] << "\t";
+			for(kk=0;kk<order+1;kk++)
+			{
+				a_dat << a_save[ii][jj][kk] << "\t";
+				b_dat << b_save[ii][jj][kk] << "\t";
+			}
 
 		}
 		a_dat << std::endl;
