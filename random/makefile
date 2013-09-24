@@ -15,26 +15,26 @@ OBJECTS = ${OBJ}/random.o
 COMP = g++
 	
 #Define Switches
-#SWITCH = -O2 -fopenmp
+SWITCH = -O2 -fopenmp -std=c++0x
 #SWITCH = -g
 
 #Define Libraries
 #LIB_DIR = 
 #LIB = 
-#IDIR = -I.
+IDIR = -I.
 ##############################
 
 ###########icpc###############
-COMP = icpc
+#COMP = icpc
 
 #Define Switches
-SWITCH = -O2 -openmp -std=gnu++11
+#SWITCH = -O2 -openmp -std=gnu++11
 #SWITCH = -g
 
 #Define Libraries
-LIB_DIR = -L/opt/intel/composer_xe_2013.2.146/compiler/lib/intel64 
-LIB = -lpthread -liomp5
-IDIR = -I. -I/usr/include/x86_64-linux-gnu/c++/4.7/
+#LIB_DIR = -L/opt/intel/composer_xe_2013.2.146/compiler/lib/intel64 
+#LIB = -lpthread -liomp5
+#IDIR = -I. -I/usr/include/x86_64-linux-gnu/c++/4.7/
 
 ##############################
 
