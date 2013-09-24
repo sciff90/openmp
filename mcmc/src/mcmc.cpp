@@ -89,38 +89,52 @@ int main(int argc, char *argv[])
 	int accepted = 0;
 	int n = 0;
 	int kk;
-	int Nmax = 100000;
+	int Nmax = 1000000;
 	int burnin = 0;
 	double a_cand[order+1],b_cand[order+1];
 	double y_cand[num_samples];
 	double a_save[Nmax][nthreads][order+1],b_save[Nmax][nthreads][order+1];
-	double num,num2;
+	double a_ratio;
 	
 	//Random number generator
-	std::mt19937 generator;
+	std::mt19937 generator[nthreads],generator2[nthreads];
+	for(int ii = 0;ii<nthreads;ii++){
+		std::fill(generator+ii,generator+ii+1,std::mt19937(ii*256*256));
+		std::fill(generator2+ii,generator2+ii+1,std::mt19937(ii*256*256));
+
+	}
 	//Random number distributions
-	std::normal_distribution<double> distribution(0,1.0);
-	std::uniform_real_distribution<double> udistribution(0.0,1.0);
+	std::normal_distribution<double> distribution[nthreads];
+	std::fill(distribution,distribution+nthreads,std::normal_distribution<double>(0,1));		
+	
+	std::uniform_real_distribution<double> udistribution(0,1);
+	std::cout<<"rand = "<<sigma*distribution[tid](generator[tid])<<std::endl;
 
 	//Parallel part
 	
 	double start = omp_get_wtime();
-	#pragma omp parallel private(tid,a_cand,b_cand,a_curr,b_curr,burnin,accepted,flg,chi_best,chi_curr,chi_cand,sigma,ratio,count,y_cand,n,kk)
+	#pragma omp parallel firstprivate(tid,a_cand,b_cand,a_curr,b_curr,burnin,accepted,flg,chi_best,chi_curr,chi_cand,sigma,ratio,count,y_cand,n,kk,a_ratio)
 	{
-	tid = omp_get_thread_num();
+	tid = omp_get_thread_num();	
+
 	while(n<=Nmax)
 	{	
-		
+//		std::cout<<"sigma = "<<sigma<<std::endl;		
 		for(kk = 0; kk < order+1; kk++)
 		{
-			a_cand[kk] = a_curr[kk] + sigma*distribution(generator);
-			b_cand[kk] = b_curr[kk] + sigma*distribution(generator);
+			a_cand[kk] = a_curr[kk] + sigma*distribution[tid](generator[tid]);
+			b_cand[kk] = b_curr[kk] + sigma*distribution[tid](generator[tid]);
 		}
+		//std::cout<<"rand = "<<1.0*distribution[tid](generator2[tid])<<std::endl;
 		a_cand[0] = 1.0;
 		filter_out(a_cand,b_cand,y_cand,u,num_samples,order);
 		chi_cand = RSS(D,y_cand,num_samples);
 		ratio = exp(-(chi_cand)+(chi_curr));
-		if(udistribution(generator)<ratio)
+//		std::cout<<"chi_cand = "<<chi_cand<<std::endl;
+//		std::cout<<"chi_curr = "<<chi_curr<<std::endl;
+//		std::cout<<"ratio = "<<ratio<<std::endl;
+		//std::cout<<"udist = "<<udistribution(generator2[tid])<<std::endl;
+		if(udistribution(generator2[tid])<ratio)
 		{	
 			//std::cout<<"accepted"<<std::endl;
 			for(kk=0;kk<order+1;kk++)
@@ -143,8 +157,8 @@ int main(int argc, char *argv[])
 
 		if(count%1000==0 && count!=0 &&flg==0)
 		{	
-			double a_ratio = (double)(accepted)/count;
-			std::cout<<"a_ratio = "<<a_ratio<<std::endl;
+			a_ratio = (double)(accepted)/count;
+			//std::cout<<"a_ratio = "<<a_ratio<<std::endl;
 			if(a_ratio<0.3)
 			{
 				sigma = sigma/1.2;
@@ -181,7 +195,7 @@ int main(int argc, char *argv[])
 	std::ofstream a_dat,b_dat;
 	a_dat.open("data/a.dat");
 	b_dat.open("data/b.dat");
-	for(int ii=0;ii<Nmax-burnin;ii++)
+	for(int ii=0;ii<Nmax;ii++)
 	{
 		for(int jj=0;jj<nthreads;jj++)
 		{

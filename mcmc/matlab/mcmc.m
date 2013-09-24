@@ -1,5 +1,5 @@
 clear all
-order = 2;
+order = 3;
 fs = 400;
 fc = 20;
 fnorm = fc*2/fs;
