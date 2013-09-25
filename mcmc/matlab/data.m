@@ -1,12 +1,12 @@
 fid = fopen('../data/a.dat');
-A = fscanf(fid,'%f %f %f %f',[4 inf]);
+A = fscanf(fid,'%f %f %f',[3 inf]);
 A = A';
 A( ~any(A,2), : ) = [];  %rows
 A( :, ~any(A,1) ) = [];  %columns
 fclose(fid);
 
 fid = fopen('../data/b.dat');
-B = fscanf(fid,'%f %f %f %f',[4 inf]);
+B = fscanf(fid,'%f %f %f',[3 inf]);
 B = B';
 B( ~any(B,2), : ) = [];  %rows
 B( :, ~any(B,1) ) = [];  %columns

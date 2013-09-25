@@ -1,13 +1,13 @@
 clear all
-order = 3;
-fs = 400;
-fc = 20;
+order = 2;
+fc = pi/4;
+fs = fc*10;
 fnorm = fc*2/fs;
 dt = 1/fs;
-t1 = 1.0;
+t1 = 30*pi;
 t0 = 0.0;
 t = t0:dt:t1;
-num_samples = (t1-t0)/(dt)+1;
+num_samples = int32((t1-t0)/(dt))+1;
 u = randn(num_samples,1);
 %u = ones(num_samples,1);
 [b,a] = butter(order,fnorm);
